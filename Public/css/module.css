@@ -1,0 +1,83 @@
+.sendactions-layout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    /* Together with the fields' right padding, preserve the 12px inline spacing. */
+    column-gap: 4px;
+}
+.sendactions-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    /* 24px selects plus padding match the 38px buttons, even on a separate row. */
+    padding: 7px 8px 7px 0;
+}
+.sendactions-actions {
+    display: flex;
+    gap: 1px;
+    max-width: 100%;
+    min-width: 0;
+}
+.sendactions-buttons {
+    display: contents;
+}
+.sendactions-direct {
+    min-width: 0;
+    min-height: 38px;
+    border-radius: 0;
+    font-size: 13.4px;
+    white-space: normal;
+    text-align: left;
+}
+.sendactions-actions > .btn-group-send {
+    display: inline-flex;
+    flex-shrink: 0;
+    margin: 0;
+}
+.sendactions-actions > .btn-group-send > .btn-send-menu {
+    height: auto;
+    min-height: 38px;
+    border-radius: 0;
+}
+.sendactions-buttons + .btn-group-send > .btn-send-text,
+.sendactions-buttons + .btn-group-send > .btn-add-note-text {
+    display: none;
+}
+@media (max-width: 582px) {
+    .sendactions-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        width: 100%;
+    }
+    .sendactions-direct {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+    .sendactions-direct:last-child {
+        grid-column: 1;
+    }
+    .sendactions-actions > .btn-group-send {
+        grid-column: 2;
+    }
+}
+.sendactions-note,
+.conv-note-block .sendactions-reply,
+.conv-forward-block .sendactions-buttons,
+.conv-phone-block .sendactions-buttons {
+    display: none;
+}
+.conv-note-block .sendactions-note {
+    display: inline;
+}
+.sendactions-settings legend {
+    margin-bottom: 8px;
+    font-size: inherit;
+}
+/* Keep keyboard focus visible even when the host button theme removes outlines (WCAG 2.4.7). */
+.sendactions-direct:focus-visible {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+}

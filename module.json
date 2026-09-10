@@ -1,0 +1,20 @@
+{
+    "name": "Send Actions",
+    "alias": "sendactions",
+    "description": "User-selectable direct send buttons for replies and notes.",
+    "version": "0.1.0",
+    "detailsUrl": "https://github.com/obstschale/freescout-send-actions",
+    "author": "Hans-Helge Buerger",
+    "authorUrl": "https://hanshelgebuerger.de",
+    "latestVersionUrl": "https://github.com/obstschale/freescout-send-actions/releases/latest/download/module.json",
+    "latestVersionZipUrl": "https://github.com/obstschale/freescout-send-actions/releases/latest/download/SendActions.zip",
+    "requiredAppVersion": "1.8.239",
+    "license": "AGPL-3.0-only",
+    "keywords": ["freescout", "reply", "notes"],
+    "active": 0,
+    "order": 0,
+    "img": "/modules/sendactions/images/module.png",
+    "providers": [
+        "Modules\\SendActions\\Providers\\SendActionsServiceProvider"
+    ]
+}
