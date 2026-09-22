@@ -112,6 +112,10 @@ try {
     $buttons = $views->make('sendactions::buttons', ['selected' => [1, 3], 'options' => $options])->render();
     check(substr_count($buttons, 'class="btn btn-primary sendactions-direct"'), 2, 'Render selected buttons only');
     check(strpos($buttons, 'data-after-send="2"'), false, 'Unselected option not rendered');
+    foreach ([1 => 'pushpin', 2 => 'arrow-right', 3 => 'folder-open'] as $option => $icon) {
+        $button = $views->make('sendactions::buttons', ['selected' => [$option], 'options' => $options])->render();
+        check(substr_count($button, 'class="glyphicon glyphicon-'.$icon.'" aria-hidden="true"'), 1, 'Action '.$option.' has its decorative icon');
+    }
     $profile = $views->make('sendactions::profile', ['selected' => [1, 3], 'options' => $options])->render();
     check(substr_count($profile, 'checked="checked"'), 2, 'Profile reflects saved choices');
     $session = new Illuminate\Session\Store('test', new Illuminate\Session\NullSessionHandler);

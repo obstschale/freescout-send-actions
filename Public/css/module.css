@@ -32,6 +32,9 @@
     white-space: normal;
     text-align: left;
 }
+.sendactions-direct > .glyphicon {
+    padding-right: 4px;
+}
 .sendactions-actions > .btn-group-send {
     display: inline-flex;
     flex-shrink: 0;
