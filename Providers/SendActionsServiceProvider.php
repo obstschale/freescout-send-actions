@@ -37,6 +37,36 @@ class SendActionsServiceProvider extends ServiceProvider
             return $user;
         }, 20, 2);
 
+        \Eventy::addFilter('users.ajax.response_default', function ($response, $request) {
+            if ($request->input('action') !== 'sendactions.save') {
+                return $response;
+            }
+            if (!auth()->check() || !is_array($request->input('sendactions', []))) {
+                return ['status' => 'error', 'msg' => __('Invalid request')];
+            }
+            $selected = self::normalize($request->input('sendactions', []));
+            // Always save the authenticated user's preferences, never a supplied user ID.
+            Option::set('sendactions.user.'.auth()->id(), $selected);
+            return [
+                'status' => 'success',
+                'selected' => $selected,
+                'buttons' => $selected ? view('sendactions::buttons', [
+                    'selected' => $selected,
+                    'options' => self::options(),
+                ])->render() : '',
+            ];
+        }, 20, 2);
+
+        \Eventy::addAction('conversation.append_send_dropdown', function ($conversation, $mailbox, $new_conversation) {
+            if ($new_conversation || !$conversation->id || $conversation->isDraft() || $conversation->isInChatMode() || !auth()->check()) {
+                return;
+            }
+            echo view('sendactions::dropdown', [
+                'selected' => self::selected(auth()->id()),
+                'options' => self::options(),
+            ])->render();
+        }, 20, 3);
+
         \Eventy::addAction('conv_editor.editor_toolbar_prepend', function ($mailbox, $conversation) {
             // New conversations and chat mode have different redirect semantics.
             if (!$conversation->id || $conversation->isDraft() || $conversation->isInChatMode() || !auth()->check()) {

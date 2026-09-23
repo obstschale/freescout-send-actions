@@ -81,9 +81,37 @@ try {
     check($provider::selected(17), [], 'Unchecking all clears selection');
 
     $application->instance('auth', new class {
-        public function check() { return true; }
+        public $authenticated = true;
+        public function check() { return $this->authenticated; }
         public function id() { return 17; }
     });
+    $ajax = Eventy::$filters['users.ajax.response_default'];
+    $original_response = ['status' => 'error', 'msg' => 'Unknown action'];
+    check($ajax($original_response, new Illuminate\Http\Request(['action' => 'other.module'])), $original_response, 'Unrelated AJAX actions pass through');
+    $response = $ajax($original_response, new Illuminate\Http\Request([
+        'action' => 'sendactions.save', 'user_id' => 18, 'sendactions' => ['3', '2', '3', '1x'],
+    ]));
+    check($response['status'], 'success', 'AJAX save succeeds');
+    check($response['selected'], [2, 3], 'AJAX normalizes choices');
+    check(substr_count($response['buttons'], 'sendactions-direct'), 2, 'AJAX returns updated buttons');
+    check(strpos($response['buttons'], 'data-after-send="1"'), false, 'AJAX omits unselected button');
+    App\Option::$cache = [];
+    check($provider::selected(17), [2, 3], 'AJAX persists own preferences');
+    check($provider::selected(18), [], 'AJAX ignores supplied user ID');
+    $response = $ajax($original_response, new Illuminate\Http\Request(['action' => 'sendactions.save', 'sendactions' => '1']));
+    check($response['status'], 'error', 'Malformed AJAX selection rejected');
+    check($provider::selected(17), [2, 3], 'Malformed request preserves preferences');
+    $application['auth']->authenticated = false;
+    $response = $ajax($original_response, new Illuminate\Http\Request(['action' => 'sendactions.save']));
+    check($response['status'], 'error', 'Unauthenticated save rejected');
+    check($provider::selected(17), [2, 3], 'Unauthenticated request preserves preferences');
+    $application['auth']->authenticated = true;
+    $response = $ajax($original_response, new Illuminate\Http\Request(['action' => 'sendactions.save']));
+    check($response['selected'], [], 'AJAX accepts all unchecked');
+    check($response['buttons'], '', 'Opt-out removes all direct buttons');
+    App\Option::$cache = [];
+    check($provider::selected(17), [], 'AJAX opt-out persists');
+
     $conversation = new class {
         public $id = 42;
         public $draft = false;
@@ -95,6 +123,26 @@ try {
     ob_start();
     $toolbar(null, $conversation);
     check(ob_get_clean(), '', 'No selection adds no toolbar markup');
+    $dropdown = Eventy::$actions['conversation.append_send_dropdown'];
+    ob_start();
+    $dropdown($conversation, null, false);
+    $dropdown_html = ob_get_clean();
+    check(substr_count($dropdown_html, 'class="sendactions-configure"'), 1, 'Settings available even without selected buttons');
+    check(substr_count($dropdown_html, 'checked="checked"'), 0, 'Unconfigured modal has no selection');
+    check(strpos($dropdown_html, 'data-after-send'), false, 'Settings entry cannot invoke send handler');
+    ob_start();
+    $dropdown($conversation, null, true);
+    check(ob_get_clean(), '', 'No settings in new-conversation dropdown');
+    $conversation->id = null;
+    ob_start();
+    $dropdown($conversation, null, false);
+    check(ob_get_clean(), '', 'No settings without existing conversation');
+    $conversation->id = 42;
+    $application['auth']->authenticated = false;
+    ob_start();
+    $dropdown($conversation, null, false);
+    check(ob_get_clean(), '', 'No settings for unauthenticated users');
+    $application['auth']->authenticated = true;
     $save($user, new Illuminate\Http\Request(['sendactions_present' => '1', 'sendactions' => ['3']]));
     App\Option::$cache = [];
     ob_start();
@@ -105,6 +153,9 @@ try {
         ob_start();
         $toolbar(null, $conversation);
         check(ob_get_clean(), '', 'No shortcuts in '.$mode.' editor');
+        ob_start();
+        $dropdown($conversation, null, false);
+        check(ob_get_clean(), '', 'No settings in '.$mode.' editor');
         $conversation->$mode = false;
     }
 
@@ -118,6 +169,14 @@ try {
     }
     $profile = $views->make('sendactions::profile', ['selected' => [1, 3], 'options' => $options])->render();
     check(substr_count($profile, 'checked="checked"'), 2, 'Profile reflects saved choices');
+    $modal = $views->make('sendactions::dropdown', ['selected' => [2], 'options' => $options])->render();
+    check(substr_count($modal, 'checked="checked"'), 1, 'Modal reflects saved selection');
+    check((bool) preg_match('/value="2"\s+checked="checked"/', $modal), true, 'Modal checks the selected action, not just any action');
+    check(strpos($modal, 'Sendebuttons anpassen') !== false, true, 'German modal entry');
+    $application->setLocale('en');
+    $english_modal = $views->make('sendactions::dropdown', ['selected' => [], 'options' => $provider::options()])->render();
+    check(strpos($english_modal, 'Customize send buttons') !== false, true, 'English modal entry');
+    $application->setLocale('de');
     $session = new Illuminate\Session\Store('test', new Illuminate\Session\NullSessionHandler);
     $session->flashInput(['sendactions_present' => '1']);
     $application['request']->setLaravelSession($session);
@@ -127,10 +186,11 @@ try {
     if (getenv('SENDACTIONS_PREVIEW')) {
         file_put_contents(getenv('SENDACTIONS_PREVIEW'), json_encode([
             'profile' => $profile,
+            'dropdown' => $dropdown_html,
             'buttons' => $views->make('sendactions::buttons', ['selected' => [1, 2, 3], 'options' => $options])->render(),
         ]));
     }
-    echo "PASS: preferences, user isolation, opt-out, input normalization, Blade rendering and validation old input\n";
+    echo "PASS: preferences, AJAX authorization and isolation, opt-out, dropdown visibility, Blade rendering and validation old input\n";
 } finally {
     $filesystem->deleteDirectory($cache);
 }

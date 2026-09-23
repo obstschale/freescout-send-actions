@@ -79,7 +79,29 @@
     margin-bottom: 8px;
     font-size: inherit;
 }
+.dropdown-menu > li > .sendactions-configure {
+    display: block;
+    width: 100%;
+    min-height: 28px;
+    padding: 3px 20px;
+    border: 0;
+    background: transparent;
+    color: #333;
+    font: inherit;
+    text-align: start;
+    white-space: nowrap;
+}
+.dropdown-menu > li > .sendactions-configure:hover,
+.dropdown-menu > li > .sendactions-configure:focus {
+    background: #f5f5f5;
+    color: #262626;
+}
+.conv-forward-block .sendactions-menu-item,
+.conv-phone-block .sendactions-menu-item {
+    display: none;
+}
 /* Keep keyboard focus visible even when the host button theme removes outlines (WCAG 2.4.7). */
+.sendactions-configure:focus-visible,
 .sendactions-direct:focus-visible {
     outline: 2px solid #111;
     outline-offset: 2px;
