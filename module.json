@@ -2,7 +2,7 @@
     "name": "Send Actions",
     "alias": "sendactions",
     "description": "User-selectable direct send buttons for replies and notes.",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "detailsUrl": "https://github.com/obstschale/freescout-send-actions",
     "author": "Hans-Helge Buerger",
     "authorUrl": "https://hanshelgebuerger.de",

@@ -1,5 +1,12 @@
 <!-- CHANGELOGGER -->
 
+## [v0.2.0] - 2026-09-23
+
+### New feature (1 change)
+
+- Customize personal send buttons directly from the conversation send dropdown without leaving the editor.
+
+
 ## [v0.1.1] - 2026-09-22
 
 ### Feature change (1 change)
